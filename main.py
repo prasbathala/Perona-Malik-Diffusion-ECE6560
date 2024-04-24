@@ -92,69 +92,146 @@ def meidan_filtering():
 
     figure = plt.figure()
 
+    original_image = read_image(IMAGE_PATH)
+
     possion_image = read_image(IMAGE_POISSON_PATH)
     salt_pepper_image = read_image(IMAGE_SP_PATH)
 
     possion_filtered_image = ndimage.median_filter(possion_image, size = 3)
     salt_pepper_filtered_image = ndimage.median_filter(salt_pepper_image, size = 3)
 
+    psnr_poisson = PSNR(possion_filtered_image, original_image)
+    psnr_snp = PSNR(salt_pepper_filtered_image, original_image)
+
+    print(f"\tPSNR for Poisson Noise Image: {psnr_poisson}")
+    print(f"\tPSNR for Salt & Pepper Noise Image: {psnr_snp}")
+
+    mse_poisson = nmse(possion_filtered_image, original_image)
+    mse_snp = nmse(salt_pepper_filtered_image, original_image)
+
+    print(f"\tNMSE for Poisson Noise Image: {mse_poisson}")
+    print(f"\tNMSE for Salt & Pepper Noise Image: {mse_snp}")
+
     imageio.imwrite(MEDIAN_FILTERED_POISSON_PATH, possion_filtered_image)
     print(f"\tImage with Poisson noise with median filter saved in: {MEDIAN_FILTERED_POISSON_PATH}")
     imageio.imwrite(MEDIAN_FILTERED_SP_PATH, salt_pepper_filtered_image)
     print(f"\tImage with S&P noise with Median filter saved in: {MEDIAN_FILTERED_SP_PATH}")
 
-    ax1 = figure.add_subplot(221)
+    ax1 = figure.add_subplot(321)
     plt.title("Poisson Noise Image")
     plt.axis('off')
-    ax2 = figure.add_subplot(222)
+    ax2 = figure.add_subplot(322)
     plt.title("Salt & Pepper Noise Image")
     plt.axis('off')
-    ax3 = figure.add_subplot(223)
+    ax3 = figure.add_subplot(323)
     plt.title("Poisson Noise Image Median Filtered")
     plt.axis('off')
-    ax4 = figure.add_subplot(224)
+    ax4 = figure.add_subplot(324)
     plt.title("Salt and Pepper Noise Image Median Filtered")
     plt.axis('off')
+
+
+    log_pde_p = anisotropic_diffusion(
+        image = possion_image,
+        function = f2,
+        iterations = 100,
+        k = 0.01,
+        log_time = 100 // (5 - 1),
+        lamb = 0.1
+    )
+
+    log_pde_s = anisotropic_diffusion(
+        image = salt_pepper_image,
+        function = f2,
+        iterations = 80,
+        k = 0.15,
+        log_time = 100 // (5 - 1),
+        lamb = 0.1
+    )
+
+    ax5 = figure.add_subplot(325)
+    plt.title("Poisson Noise Image PDE")
+    plt.axis('off')
+    ax6 = figure.add_subplot(326)
+    plt.title("Salt & Pepper Noise Image PDE")
+    plt.axis('off')
+
 
     ax1.imshow(possion_image)
     ax2.imshow(salt_pepper_image)
     ax3.imshow(possion_filtered_image)
     ax4.imshow(salt_pepper_filtered_image)
+    ax5.imshow(log_pde_p[-1])
+    ax6.imshow(log_pde_s[-1])
 
     figure.tight_layout()
     plt.show()
 
     print("")
 
-def plot_edge_functions():
+# def plot_edge_functions():
     
+#     # Generate Values for gradI
+#     gradI_values = np.linspace(0, 10, 100)
+
+#     # Compute the Values for both the functions
+#     k = 2
+#     f1_values = f1(gradI_values, k)
+#     f2_values = f2(gradI_values, k)
+
+#     figure = plt.figure(1)
+
+#     axes = figure.add_subplot(111)
+
+#     # Plot the graph
+#     axes.plot(gradI_values, f1_values, label = 'f1')
+#     axes.plot(gradI_values, f2_values, label = 'f2')
+
+#     axes.set_xlim(0, None)
+#     axes.set_xticks(np.arange(0, 11, 1))
+#     axes.set_yticks(np.arange(0, 1.25, 0.25))
+#     axes.set_xlabel('gradI')
+#     axes.set_ylabel('f(gradI)')
+#     axes.set_title(f'Edge Stopping Function for k = {k}')
+#     axes.legend()
+
+#     figure.tight_layout()
+#     plt.show()
+
+#     print("")
+
+def plot_edge_functions(k_values, f, const):
     # Generate Values for gradI
     gradI_values = np.linspace(0, 10, 100)
 
-    # Compute the Values for both the functions
-    k = 2
-    f1_values = f1(gradI_values, k)
-    f2_values = f2(gradI_values, k)
+    fig_f1 = plt.figure()
+    ax_f1 = fig_f1.add_subplot(111)
 
-    figure = plt.figure(1)
+    for k in k_values:
+        # Compute the Values for both the functions
+        f1_values = f(gradI_values, k)
 
-    axes = figure.add_subplot(111)
+        # Plot f1 in a separate figure
+        
+        
+        ax_f1.plot(gradI_values, f1_values, label=f'{const} (k={k})')
+        
 
-    # Plot the graph
-    axes.plot(gradI_values, f1_values, label = 'f1')
-    axes.plot(gradI_values, f2_values, label = 'f2')
-
-    axes.set_xlim(0, None)
-    axes.set_xticks(np.arange(0, 11, 1))
-    axes.set_yticks(np.arange(0, 1.25, 0.25))
-    axes.set_xlabel('gradI')
-    axes.set_ylabel('f(gradI)')
-    axes.set_title(f'Edge Stopping Function for k = {k}')
-    axes.legend()
-
-    figure.tight_layout()
+        # Plot f2 in a separate figure
+        
+        
+        
+    ax_f1.set_xlim(0, None)
+    ax_f1.set_xticks(np.arange(0, 11, 1))
+    ax_f1.set_yticks(np.arange(0, 1.25, 0.25))
+    ax_f1.set_xlabel('gradI')
+    ax_f1.set_ylabel('f(gradI)')
+    ax_f1.set_title(f'Edge Stopping Function {const} for varying K values')
+    ax_f1.legend()
+    fig_f1.tight_layout()
     plt.show()
 
+    
     print("")
 
 def PDE(image_path: str, noise: str, iterations: int, k: int, lamb: float, num_col: int = 5):
@@ -165,7 +242,7 @@ def PDE(image_path: str, noise: str, iterations: int, k: int, lamb: float, num_c
     # def anisotropic_diffusion(image, function, iterations, k, log_time, lamb=0.01):
     log_pde = anisotropic_diffusion(
         image = image,
-        function = f2,
+        function = f1,
         iterations = iterations,
         k = k,
         log_time = iterations // (num_col - 1),
@@ -173,7 +250,7 @@ def PDE(image_path: str, noise: str, iterations: int, k: int, lamb: float, num_c
     )
     
     figure = plt.figure()
-    plt.title(f"PDE on Image with k = {k}")
+    plt.title(f"PDE on {noise} noise Image with k = {k}")
     plt.axis('off')
     plt.gray()
 
@@ -215,7 +292,7 @@ def PDE(image_path: str, noise: str, iterations: int, k: int, lamb: float, num_c
     plt.xlabel("Iterations")
     plt.ylabel("NMSE")
     plt.title(f"NMSE for {noise} Noise image with k = {k}")
-
+    plt.tight_layout()
     plt.savefig(f"images/PSNR_{noise}.jpg")
     print(f"\tPSNR result save in: images/PSNR_{noise}.jpg")
     print(f"\tPSNR for {noise} with k = {k} in iterations {iterations} is: ")
@@ -281,15 +358,17 @@ def compare_k(
 
 def main():
     print("\nECE6560 course project")
+    help(add_noise)
 
     add_noise()
     meidan_filtering()
-    plot_edge_functions()
+    plot_edge_functions([0.01, 0.03, 0.05, 0.1, 0.3, 0.7, 1, 2, 5, 10], f1, "F1")
+    plot_edge_functions([0.01, 0.03, 0.05, 0.1, 0.3, 0.7, 1, 2, 5, 10], f2, "F2")
     # Poisson Noise Image
-    PDE(IMAGE_POISSON_PATH, "Poisson", 80, 0.1, 0.1)
+    PDE(IMAGE_POISSON_PATH, "Poisson", 100, 0.1, 0.1)
 
     # Salt & Pepper Noise Image
-    PDE(IMAGE_SP_PATH, "Salt & Pepper", 80, 0.1, 0.1)
+    PDE(IMAGE_SP_PATH, "Salt & Pepper", 80, 0.3, 0.1)
 
     # Compare the effects of different k values
     # For Poisson Noise Image
