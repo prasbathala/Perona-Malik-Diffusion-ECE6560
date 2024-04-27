@@ -3,7 +3,7 @@
 
 
 
-## ECE 6560 Project V1
+## ECE 6560 Project
 
 Partial Differential Equations for Computer Vision
 
@@ -18,7 +18,7 @@ This repository includes :
 
 ## Run
 
-This project is based on **Python 3.7** and below libraries:
+This project is based on **Python 3.9** and below libraries:
 - numpy
 - matplotlib
 - scipy
@@ -26,18 +26,4 @@ This project is based on **Python 3.7** and below libraries:
 - PIL
 - imageio
 - math
-
-All libraries are the latest versions by April 2020.
-
-Make sure you have the target image under "image" folder and its name stand with the parameter in "main.py".
-
-To run:
-- Python<main.py> log
-
-The result image will be saved in image folder and console output will be save to "log".
-
-## Documentations
-
-For mathematical concept, relevant experiment and result, please see 
-- [Project Report]
  
